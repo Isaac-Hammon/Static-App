@@ -37,5 +37,5 @@ qaItems.forEach((qaItem) => {
 
 	questionDiv.appendChild(answerDiv);
 
-	questionDiv.appendChild(questionDiv);
+	accordionDiv.appendChild(questionDiv);
 });
