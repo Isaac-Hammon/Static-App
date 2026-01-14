@@ -44,3 +44,142 @@ qaItems.forEach((qaItem) => {
 
 	accordionDiv.appendChild(questionDiv);
 });
+
+
+
+class DatabaseObject {
+	ToString() {
+		throw new Error("Not Implemented");
+	}
+}
+
+class Product {
+constructor(name, inventory) {}
+
+
+ToString() {
+	return `${this.name}: ${inventory} left in stock`
+}
+
+class Delivery {
+constructor(address, scheduleTime, product, quantity) {}
+}
+
+ToString() {
+	return `Delivering${quantity} of ${product} to ${address} at ${scheduleTime}`;
+}
+}
+
+
+
+class ProductDao {
+	static seeds = [
+		{
+
+		name: "Apples",
+		inventory: 100,
+
+		},
+
+		{
+
+		name: "Bananas",
+		inventory: 80,
+
+		},
+
+		{
+
+		name: "Peaches",
+		inventory: 70,
+
+		},
+	]
+
+	getAll() {
+		throw new Error("Not Implemented")
+
+	}
+
+updateProduct() {
+	throw new Error("Not Implemented")
+}
+}
+
+
+
+class SessionStorageProductDao extends ProductDao{
+
+constructor() {
+this.database = sessionStorage;
+}
+
+//This is Where I left off at 22 mins into the first video. 
+getAll() {
+	const productsAsJSON = this.database.getItem("products");
+	const productsData = productsAsJSON ? JSON.parse(productsAsJSON) : ProductDao.seeds;
+	return productsData.map(productData) => {
+		const {name, inventory} = productData
+	}
+	new Product(name, inventory)
+		
+
+	}
+
+update(product) {
+const existingProducts = this.getAll();
+const indexToDelete = existingProducts.findIndex((productInList) => productInList.name == product.name); 
+existingProducts.splice(indexToDelete, 1, product);
+}
+}
+
+
+class DeliveryDao {
+	getAll() {
+		throw new Error("Not Implemented");
+	}
+	create(delivery) {
+		throw new Error("Not Implemented");
+	}
+}
+
+
+
+class SessionStorageDeliveryDao extends DeliveryDao {
+constructor() {
+	this.database = sessionStorage
+}
+getAll() {
+		const deliveriesASJSON = this.database.getItem("deliveries");
+		return JSON.parse(deliveriesAsJSON);
+	}
+	create(delivery) {
+		const deliveries = this.getAll();
+		deliveries.push(delivery);
+		this.database.setItem("deliveries", deliveries);
+	}
+}
+
+
+
+
+
+// class CookieStorageProductDAO extends ProductDao {
+// 	constructor(){
+// 		this.database = document.cookie;
+// 	}
+	
+// getAll() {
+
+// 	const productsAsJSON = this.database.getItem("products");
+// 	return productsAsJSON ? JSON.parse(productsAsJSON) : [];
+
+// 	}
+
+// update(product) {
+// const existingProducts = this.getAll();
+// const indexToDelete = existingProducts.findIndex((productInList) => productInList.name == product.name); 
+// existingProducts.splice(indexToDelete, 1, product);
+// }
+// }
+
