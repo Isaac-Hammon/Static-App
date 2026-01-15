@@ -137,7 +137,6 @@ super();
 this.database = sessionStorage;
 }
 
-//This is Where I left off at 22 mins into the first video. 
 getAll() {
 	const productsAsJSON = this.database.getItem("products");
 	const productsData = productsAsJSON ? JSON.parse(productsAsJSON) : ProductDao.seeds;
@@ -241,7 +240,7 @@ for (let i = 0; i < products.length; i++) {
 	productNameSelect.appendChild(option);
 
 }
-//
+//Got 20mins into the second video
 
 
 
