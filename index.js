@@ -46,34 +46,40 @@ qaItems.forEach((qaItem) => {
 });
 
 
-
+//Base Classes
 class DatabaseObject {
-	ToString() {
+	toString() {
 		throw new Error("Not Implemented");
 	}
 }
 
-class Product {
-constructor(name, inventory) {}
+//Product Class
+class Product extends DatabaseObject {
+constructor(name, inventory) {
+	super();
+	this.name = name; 
+	this.inventory = inventory;
+}
 
 
-ToString() {
-	return `${this.name}: ${inventory} left in stock`
+toString() {
+	return `${this.name}: ${this.inventory} left in stock`;
 }
 }
 
-class Delivery {
-constructor(address, scheduleTime, product, quantity) {
+//Delivery Class
+class Delivery extends DatabaseObject {
+constructor(params) {
+super();
+const { address, scheduleTime, product, quantity } = params;
 this.address = address;
 this.scheduleTime = scheduleTime;
 this.product = product;
 this.quantity = quantity;
 }
 
-
-
-ToString() {
-	return `Delivering${quantity} of ${product} to ${address} at ${scheduleTime}`;
+toString() {
+	return `Delivering${this.quantity} of ${this.product} to ${this.address} at ${this.scheduleTime}`;
 }
 
 static create(params){
@@ -85,7 +91,7 @@ return new Delivery(params);
 }
 
 
-
+//Product DAO Class 
 class ProductDao {
 	static seeds = [
 		{
@@ -108,7 +114,7 @@ class ProductDao {
 		inventory: 70,
 
 		},
-	]
+	];
 
 getAll() {
 	throw new Error("Not Implemented")
@@ -124,10 +130,10 @@ updateProduct() {
 }
 
 
-
+//Session Storage Product DAO Class
 class SessionStorageProductDao extends ProductDao{
-
 constructor() {
+super();
 this.database = sessionStorage;
 }
 
@@ -137,14 +143,14 @@ getAll() {
 	const productsData = productsAsJSON ? JSON.parse(productsAsJSON) : ProductDao.seeds;
 	return productsData.map((productData) => {
 	const {name, inventory} = productData
-	new Product(name, inventory)
+	return new Product(name, inventory)
 	});
 	}
 
 
 getProductByName(name){
-const products = getAll();
-return products.find((product) => product.name == name);
+const products = this.getAll();
+return products.find(product => product.name == name);
 	}
 	
 
@@ -155,7 +161,7 @@ existingProducts.splice(indexToDelete, 1, product);
 }
 }
 
-
+// Delivery DAO Class
 class DeliveryDao {
 	getAll() {
 		throw new Error("Not Implemented");
@@ -165,18 +171,18 @@ class DeliveryDao {
 	}
 }
 
-
-
+// Session Storage Delivery DAO Class
 class SessionStorageDeliveryDao extends DeliveryDao {
-constructor() {
-	this.database = sessionStorage
-}
-getAll() {
-		const deliveriesAsJSON = this.database.getItem("deliveries");
-		const deliveriesData = JSON.parse(deliveriesAsJSON);
-		return deliveriesData.map((deliveryData) => {
-		return Delivery.create(deliveryData);
-		})
+	constructor() {
+		super();
+		this.database = sessionStorage;
+	}
+	getAll() {
+		const deliveriesInSessionStorage = this.database.getItem("deliveries");
+		const deliveriesdata = deliveriesInSessionStorage ? JSON.parse(deliveriesAsJSON) : [];
+		return deliveriesdata.map((deliveryData) => {
+			return Delivery.create(deliveryData);
+		});
 	}
 	create(delivery) {
 		const deliveries = this.getAll();
@@ -186,25 +192,31 @@ getAll() {
 }
 
 
-
+// Session Storage Delivery DAO Class
 class CreateDeliveryService {
-constructor(productDao, deliveryDao) {}
+	constructor(productDao, deliveryDao) {
+		this.productDao = productDao;
+		this.deliveryDao = deliveryDao;
+	}
+
+	createDelivery(productName, quantity, address, scheduleTime) {
+		const product = this.productDao.getProductByName(productName);
+
+		const newInventory = product.inventory - quantity;
+		product.inventory = newInventory;
+
+		const deliveryData = {
+			product,
+			quantity,
+			address,
+			scheduleTime
+		};
+
+		this.deliveryDao.create(deliveryData);
+		this.productDao.update(product);
+	}
 }
-
-createDelivery(productName, quantity, address, scheduleTime) 
-const product = productDai.getProductByName(productName);
-const newInventory = product.inventory - quantity;
-product.inventory = newInventory;
-const deliveryData = {
-	product,
-	quantity,
-	address, 
-	scheduleTime,
-};
-
-deliveryDao.create(deliveryData);
-productDao.update(product);
-
+//App Setup
 const productDao = new SessionStorageProductDao();
 const deliveryDao = new SessionStorageDeliveryDao();
 const createDeliveryService = new CreateDeliveryService(productDao, deliveryDao);
@@ -215,10 +227,21 @@ const deliveries = deliveryDao.getAll();
 for(let i = 0; i < deliveries.length; i++) {
 	const delivery = deliveries[i];
 	const deliveryLi = document.createElement("li");
-	deliveryLi.textContent = delivery.ToString();
+	deliveryLi.textContent = delivery.toString();
 	deliveryList.appendChild(deliveryLi);
 }
 
+const productNameSelect = document.querySelector("#deliveries form select");
+const products = productDao.getAll();
+for (let i = 0; i < products.length; i++) {
+	const product = products[i];
+	const option = document.createElement("option");
+	option.innerText = product.toString();
+	option.setAttribute("value", product.name);
+	productNameSelect.appendChild(option);
+
+}
+//
 
 
 
