@@ -191,7 +191,7 @@ const existingProducts = this.getAll();
 const indexToDelete = existingProducts.findIndex(
 	(productInList) => productInList.name == product.name,); 
 existingProducts.splice(indexToDelete, 1, product);
-document.cookie = `products=${JSON.stringify(existingProducts)};`;
+document.cookie = `products=${JSON.stringify(existingProducts)}; max-age=30`;
 }
 }
 
