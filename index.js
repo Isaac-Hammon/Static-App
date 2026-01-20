@@ -79,7 +79,7 @@ this.quantity = quantity;
 }
 
 toString() {
-	return `Delivering ${this.quantity} ${this.product.name} to ${this.address} at ${this.scheduleTime}`;
+	return `Delivering ${this.quantity} ${this.product.name} to ${this.address} on ${this.scheduleTime}`;
 }
 
 static create(params){
@@ -87,9 +87,7 @@ static create(params){
 // return new Delivery(address, scheduleTime, product, quantity);
 return new Delivery(params);
 }
-
 }
-
 
 //Product DAO Class 
 class ProductDao {
@@ -120,9 +118,15 @@ getAll() {
 	throw new Error("Not Implemented")
 	}
 
+// getProductByName(name){
+// 		throw new Error("Not Implemented")
+// 	}
+
 getProductByName(name){
-		throw new Error("Not Implemented")
+const products = this.getAll();
+return products.find(product => product.name == name);
 	}
+	
 
 updateProduct() {
 	throw new Error("Not Implemented")
@@ -147,10 +151,10 @@ getAll() {
 	}
 
 
-getProductByName(name){
-const products = this.getAll();
-return products.find(product => product.name == name);
-	}
+// getProductByName(name){
+// const products = this.getAll();
+// return products.find(product => product.name == name);
+// 	}
 	
 
 update(product) {
@@ -160,6 +164,37 @@ existingProducts.splice(indexToDelete, 1, product);
 this.database.setItem("products", JSON.stringify(existingProducts));
 }
 }
+
+
+
+class CookieStorageProductDao extends ProductDao {
+	constructor(){
+		super();
+		this.database = document.cookie;
+	}
+	
+getAll() {
+	const cookieValue = document.cookie
+	.split("; ")
+	.find((row) => row.startsWith("products"))
+	?.split("=")[1];
+
+	const productsData = cookieValue ? JSON.parse(cookieValue) : ProductDao.seeds;
+	return productsData.map(
+		(productData) => new Product(productData.name, productData.inventory),
+	);
+
+	}
+
+update(product) {
+const existingProducts = this.getAll();
+const indexToDelete = existingProducts.findIndex(
+	(productInList) => productInList.name == product.name,); 
+existingProducts.splice(indexToDelete, 1, product);
+document.cookie = `products=${JSON.stringify(existingProducts)};`;
+}
+}
+
 
 // Delivery DAO Class
 class DeliveryDao {
@@ -191,6 +226,25 @@ class SessionStorageDeliveryDao extends DeliveryDao {
 	}
 }
 
+class CookieStorageDeliveryDao extends DeliveryDao {
+	getAll() {
+	const cookieValue = document.cookie
+	.split("; ")
+	.find((row) => row.startsWith("deliveries"))
+	?.split("=")[1];
+
+	const deliveriesData = cookieValue ? JSON.parse(cookieValue) : [];
+	return deliveriesData.map(
+		(deliveryData) => new Delivery(deliveryData));
+
+	}
+
+	create(delivery) {
+	const existingDeliveries = this.getAll();
+    existingDeliveries.push(delivery);
+    document.cookie = `deliveries=${JSON.stringify(existingDeliveries)}; max-age=30`;
+}
+}
 
 // Session Storage Delivery DAO Class
 class CreateDeliveryService {
@@ -218,8 +272,10 @@ class CreateDeliveryService {
 }
 
 //App Setup
-const productDao = new SessionStorageProductDao();
-const deliveryDao = new SessionStorageDeliveryDao();
+// const productDao = new SessionStorageProductDao();
+const productDao = new CookieStorageProductDao();
+const deliveryDao = new CookieStorageDeliveryDao();
+// const deliveryDao = new SessionStorageDeliveryDao();
 const createDeliveryService = new CreateDeliveryService(productDao, deliveryDao);
 
 
@@ -285,21 +341,4 @@ createDeliveryService.createDelivery(productName, quantity, address, scheduleTim
 
 
 
-// class CookieStorageProductDAO extends ProductDao {
-// 	constructor(){
-// 		this.database = document.cookie;
-// 	}
-	
-// getAll() {
 
-// 	const productsAsJSON = this.database.getItem("products");
-// 	return productsAsJSON ? JSON.parse(productsAsJSON) : [];
-
-// 	}
-
-// update(product) {
-// const existingProducts = this.getAll();
-// const indexToDelete = existingProducts.findIndex((productInList) => productInList.name == product.name); 
-// existingProducts.splice(indexToDelete, 1, product);
-// }
-// 
