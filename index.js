@@ -79,7 +79,7 @@ this.quantity = quantity;
 }
 
 toString() {
-	return `Delivering${this.quantity} of ${this.product} to ${this.address} at ${this.scheduleTime}`;
+	return `Delivering ${this.quantity} ${this.product.name} to ${this.address} at ${this.scheduleTime}`;
 }
 
 static create(params){
@@ -157,6 +157,7 @@ update(product) {
 const existingProducts = this.getAll();
 const indexToDelete = existingProducts.findIndex((productInList) => productInList.name == product.name); 
 existingProducts.splice(indexToDelete, 1, product);
+this.database.setItem("products", JSON.stringify(existingProducts));
 }
 }
 
@@ -178,7 +179,7 @@ class SessionStorageDeliveryDao extends DeliveryDao {
 	}
 	getAll() {
 		const deliveriesInSessionStorage = this.database.getItem("deliveries");
-		const deliveriesdata = deliveriesInSessionStorage ? JSON.parse(deliveriesAsJSON) : [];
+		const deliveriesdata = deliveriesInSessionStorage ? JSON.parse(deliveriesInSessionStorage) : [];
 		return deliveriesdata.map((deliveryData) => {
 			return Delivery.create(deliveryData);
 		});
@@ -193,7 +194,7 @@ class SessionStorageDeliveryDao extends DeliveryDao {
 
 // Session Storage Delivery DAO Class
 class CreateDeliveryService {
-	constructor(productDao, deliveryDao) {
+	constructor(ProductDao, DeliveryDao) {
 		this.productDao = productDao;
 		this.deliveryDao = deliveryDao;
 	}
@@ -208,20 +209,21 @@ class CreateDeliveryService {
 			product,
 			quantity,
 			address,
-			scheduleTime
+			scheduleTime,
 		};
 
 		this.deliveryDao.create(deliveryData);
 		this.productDao.update(product);
 	}
 }
+
 //App Setup
 const productDao = new SessionStorageProductDao();
 const deliveryDao = new SessionStorageDeliveryDao();
 const createDeliveryService = new CreateDeliveryService(productDao, deliveryDao);
 
 
-const deliveryList = document.getElementById("delivery-list");
+const deliveryList = document.getElementById("deliveries-list");
 const deliveries = deliveryDao.getAll();
 for(let i = 0; i < deliveries.length; i++) {
 	const delivery = deliveries[i];
@@ -231,16 +233,52 @@ for(let i = 0; i < deliveries.length; i++) {
 }
 
 const productNameSelect = document.querySelector("#deliveries form select");
+const quantityInput = document.querySelector("#deliveries form input[name='quantity']");
+
 const products = productDao.getAll();
+console.log("products");
+console.log(products[0].toString());
 for (let i = 0; i < products.length; i++) {
 	const product = products[i];
 	const option = document.createElement("option");
 	option.innerText = product.toString();
 	option.setAttribute("value", product.name);
+const existingInventory = product.inventory;
+if (i == 0) {
+	console.log("product");
+	console.log(product);
+	quantityInput.setAttribute("max", existingInventory);
+	console.log(`option.getAttribute("max")`);
+	console.log(option.getAttribute("max"));
+}
+if (existingInventory > 0) {
 	productNameSelect.appendChild(option);
+}
+}
+
+function handleChangeToProductName(event) {
+const productName = event.target.value;
+const selectedProduct = productDao.getProductByName(productName);
+const existingInventory = selectedProduct.inventory;
+quantityInput.setAttribute("max", existingInventory);
 
 }
-//Got 20mins into the second video
+productNameSelect.addEventListener("change", handleChangeToProductName)
+
+
+
+const createDeliveryForm = document.querySelector("#deliveries form");
+createDeliveryForm.addEventListener("submit", (event) => {
+		// event.preventDefault();
+const formData = new FormData(event.target);
+const address = formData.get("address");
+const scheduleTime = formData.get("scheduledTime");
+const productName = formData.get("productName");
+const quantity = formData.get("quantity");
+
+createDeliveryService.createDelivery(productName, quantity, address, scheduleTime);
+
+});
 
 
 
