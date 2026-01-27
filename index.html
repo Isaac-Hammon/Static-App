@@ -70,8 +70,29 @@
                 </div>
             </div>
         </section>
-
         <section id="deliveries">
+  <h2>Deliveries</h2>
+  <ul id="deliveries-list"></ul>
+
+  <form>
+    <label for="address">Address:</label>
+    <input id="address" type="text" name="address" />
+
+    <label for="scheduledTime">Scheduled Time:</label>
+    <input id="scheduledTime" type="date" name="scheduledTime" />
+
+    <label for="productName">Product:</label>
+    <select id="productName" name="productName"></select>
+
+    <label for="quantity">Quantity</label>
+    <input id="quantity" type="number" name="quantity" />
+
+    <button type="submit">Create Delivery</button>
+  </form>
+</section>
+
+
+        <!-- <section id="deliveries">
             <h2>Deliveries</h2>
             <ul id="deliveries-list"></ul>
             <form>
@@ -85,7 +106,7 @@
                 <input type="number" name="quantity" />
                 <button type="submit">Create Delivery</button>
             </form>
-        </section>
+        </section> -->
 
         <section id="questions">
         <h2>Common Questions</h2>
